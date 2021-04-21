@@ -68,9 +68,7 @@ $files | %{
 
 	Get-job -State "Completed" | Receive-job	#delete job result of those completed
 	Remove-job -State "Completed"	#terminate or delete completed jobs
-	Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null #$_ is the variable(folder/dir name) obtained from the piping of
-																	   #$files. Out-null is used to mute the details printed by start-job 
-																	   #command to the console
+	Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null 
     Write-Host -NoNewline "." #to show progress
 }
 
