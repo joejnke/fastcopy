@@ -40,8 +40,9 @@ Write-Host "Destination dir: " $dest
 #
 # Set $log to a local folder to store logfiles
 #
-$log = $dest + "\fastcopy_log\$(get-date -f yyyy-MM-dd-mm-ss).log"
+$log = $dest + "\fastcopy_log"
 mkdir $log
+$log += "\$(get-date -f yyyy-MM-dd-mm-ss).log"
 
 $files = ls $src
 
@@ -49,8 +50,7 @@ $files = ls $src
 $files | %{
 	$FastCopy = {
 		param($name, $src, $dest, $log)
-		$log += "\$name-$(get-date -f yyyy-MM-dd-mm-ss).log"  #logfile name
-		robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log  #the copy command
+		robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log | Out-null  #the copy command
 	}
 
 	#check the number of jobs running and Start-Sleep untill the number gets below the max_jobs
