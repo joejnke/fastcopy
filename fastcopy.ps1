@@ -28,17 +28,17 @@ $tstart = get-date
 #
 # Set $src to a directory with lots of sub-directories
 #
-$src = "E:\EPC_January2020\TMCEPCW3\EPCDATA\EU\"
+$src = $args0
 
 #
 # Set $dest to a local folder or share you want to back up the data to
 #
-$dest = "D:\testcopy-fastcopy\EU\"
+$dest = $args1
 
 #
 # Set $log to a local folder to store logfiles
 #
-$log = "D:\testcopy-fastcopy\log\"
+$log = $dest + "\log\"
 mkdir $log
 
 $files = ls $src
