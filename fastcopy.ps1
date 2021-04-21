@@ -28,13 +28,13 @@ $tstart = get-date
 #
 # Set $src to a directory with lots of sub-directories
 #
-$src = $args[0]
+$src = $args[0] + "\"
 Write-Host "Source dir: " $src
 
 #
 # Set $dest to a local folder or share you want to back up the data to
 #
-$dest = $args[1]
+$dest = $args[1] + "\"
 Write-Host "Destination dir: " $dest
 
 #
