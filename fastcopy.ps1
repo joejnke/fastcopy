@@ -1,0 +1,97 @@
+###
+#
+# This script runs robocopy jobs in parallel by increasing the number of outstanding i/o's to the copy process. Even though you can
+# change the number of threads using the "/mt:#" parameter, your backups will run faster by adding two or more jobs to your
+# original set. 
+#
+# To do this, you need to subdivide the work into directories. That is, each job will recurse the directory until completed.
+# The ideal case is to have 100's of directories as the root of the backup. Simply change $src to get
+# the list of folders to backup and the list is used to feed $FastCopy.
+# 
+# For maximum SMB throughput, do not exceed 8 concurrent Robocopy jobs with 20 threads. Any more will degrade
+# the performance by causing disk thrashing looking up directory entries. Lower the number of threads to 8 if one
+# or more of your volumes are encrypted.
+#
+# Parameters:
+# $src Change this to a directory which has lots of subdirectories that can be processed in parallel 
+# $dest Change this to where you want to backup your files to
+# $max_jobs Change this to the number of parallel jobs to run ( <= 8 )
+# $log Change this to the directory where you want to store the output of each robocopy job.
+#
+####
+#
+# This script will throttle the number of concurrent jobs based on $max_jobs
+#
+$max_jobs = 8
+$tstart = get-date
+
+#
+# Set $src to a directory with lots of sub-directories
+#
+$src = "E:\EPC_January2020\TMCEPCW3\EPCDATA\EU\"
+
+#
+# Set $dest to a local folder or share you want to back up the data to
+#
+$dest = "D:\testcopy-fastcopy\EU\"
+
+#
+# Set $log to a local folder to store logfiles
+#
+$log = "D:\testcopy-fastcopy\log\"
+mkdir $log
+
+$files = ls $src
+
+#for each directory name in $files. This is applied using % operator
+$files | %{
+	$FastCopy = {
+		param($name, $src, $dest, $log)
+		$log += "\$name-$(get-date -f yyyy-MM-dd-mm-ss).log"  #logfile name
+		robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /v > $log  #the copy command
+	}
+
+	#check the number of jobs running and Start-Sleep untill the number gets below the max_jobs
+	$j = Get-Job -State "Running"
+	while ($j.count -ge $max_jobs) 
+	{
+		 Start-Sleep -Milliseconds 500
+		 $j = Get-Job -State "Running"
+	}
+
+	Get-job -State "Completed" | Receive-job	#delete job result of those completed
+	Remove-job -State "Completed"	#terminate or delete completed jobs
+	Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null #$_ is the variable(folder/dir name) obtained from the piping of
+																	   #$files. Out-null is used to mute the details printed by start-job 
+																	   #command to the console
+    #Write-Host "--> " $_ " => successfully copied"
+}
+
+#
+# No more jobs to process. Wait for all of them to complete
+#
+
+Write-Host "`nwaiting for all jobs to complete ..."
+
+Write-host "`n=========== Running Jobs List ============="
+#$rjobs = Get-Job -State "Running" 
+#$jobcount = $rjobs.count
+While (Get-Job -State "Running") {
+	#$rjobs = Get-Job -State "Running"
+	#if ($rjobs.count -lt $jobcount) {
+	#	Write-host "`n----- Update Job list -----"
+	#	$jobcount = $rjobs.count
+	#	Write-host "# of Running jobs: " $rjobs.Name.count
+	#	$rjobs.Name | Write-host
+	#}
+	Start-Sleep 2 
+}
+
+Remove-Job -State "Completed" 
+Write-Host "`ncopy completed ..."
+
+$tend = get-date
+
+$tspan = new-timespan -start $tstart -end $tend
+
+Write-host "`nTotal time to copy: " $tspan.TotalSeconds " Seconds"
