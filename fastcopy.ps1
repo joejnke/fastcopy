@@ -50,7 +50,12 @@ $files = ls $src
 $files | %{
 	$FastCopy = {
 		param($name, $src, $dest, $log)
-		robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log | Out-null  #the copy command
+		if ($name -eq "FL"){
+			ls $name | %{Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null}
+		}
+		else {
+			robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log | Out-null  #the copy command
+		}
 	}
 
 	#check the number of jobs running and Start-Sleep untill the number gets below the max_jobs
