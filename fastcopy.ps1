@@ -64,7 +64,7 @@ $files | %{
 	Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null #$_ is the variable(folder/dir name) obtained from the piping of
 																	   #$files. Out-null is used to mute the details printed by start-job 
 																	   #command to the console
-    #Write-Host "--> " $_ " => successfully copied"
+    Write-Host "." #to show progress
 }
 
 #
@@ -73,17 +73,14 @@ $files | %{
 
 Write-Host "`nwaiting for all jobs to complete ..."
 
-Write-host "`n=========== Running Jobs List ============="
-#$rjobs = Get-Job -State "Running" 
-#$jobcount = $rjobs.count
+$rjobs = Get-Job -State "Running" 
+$jobcount = $rjobs.count
 While (Get-Job -State "Running") {
-	#$rjobs = Get-Job -State "Running"
-	#if ($rjobs.count -lt $jobcount) {
-	#	Write-host "`n----- Update Job list -----"
-	#	$jobcount = $rjobs.count
-	#	Write-host "# of Running jobs: " $rjobs.Name.count
-	#	$rjobs.Name | Write-host
-	#}
+	$rjobs = Get-Job -State "Running"
+	if ($rjobs.count -lt $jobcount) {
+		$jobcount = $rjobs.count
+		Write-host "# of Remaining jobs: " $rjobs.Name.count
+	}
 	Start-Sleep 2 
 }
 
