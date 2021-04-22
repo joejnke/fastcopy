@@ -96,5 +96,8 @@ Write-Host "`ncopy completed ..."
 $tend = get-date
 
 $tspan = new-timespan -start $tstart -end $tend
+$tspanHour = ($tspan.TotalSeconds/3600 - ($tspan.TotalSeconds%3600)/3600)
+$tspanMin = ($tspan.TotalSeconds%3600/60 - ( $tspan.TotalSeconds%3600%60)/60)
+$tspanSec = ($tspan.TotalSeconds%3600%60)
 
-Write-host "`nTotal time to copy: " $tspan.TotalSeconds " Seconds"
+Write-host "`nTotal time to copy " $tspanHour":"$tspanMin":"$tspanSec
