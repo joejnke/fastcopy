@@ -47,12 +47,7 @@ $log += "\$(get-date -f yyyy-MM-dd-mm-ss).log"
 #the function that use robocopy 
 $FastCopy = {
 	param($name, $src, $dest, $log)
-	if ($name -eq "FL"){
-		ls $name | %{Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null}
-	}
-	else {
-		robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log | Out-null  #the copy command
-	}
+	robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log | Out-null
 }
 
 #list directories in $src
@@ -70,7 +65,14 @@ $files | %{
 
 	Get-job -State "Completed" | Receive-job	#delete job result of those completed
 	Remove-job -State "Completed"	#terminate or delete completed jobs
-	Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null 
+
+	if ($name -eq "FL"){
+		ls $name | %{Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null}
+	}
+	else {
+		Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null
+	}
+	
     Write-Host -NoNewline "." #to show progress
 }
 
