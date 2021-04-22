@@ -44,20 +44,22 @@ $log = $dest + "\fastcopy_log"
 mkdir $log
 $log += "\$(get-date -f yyyy-MM-dd-mm-ss).log"
 
+#the function that use robocopy 
+$FastCopy = {
+	param($name, $src, $dest, $log)
+	if ($name -eq "FL"){
+		ls $name | %{Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null}
+	}
+	else {
+		robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log | Out-null  #the copy command
+	}
+}
+
+#list directories in $src
 $files = ls $src
 
-#for each directory name in $files. This is applied using % operator
+#for each directory name in $files.
 $files | %{
-	$FastCopy = {
-		param($name, $src, $dest, $log)
-		if ($name -eq "FL"){
-			ls $name | %{Start-Job -Name $_ $FastCopy -ArgumentList $_,$src,$dest,$log | Out-null}
-		}
-		else {
-			robocopy $src$name $dest$name /E /nfl /np /mt:16 /ndl /LOG+:$log | Out-null  #the copy command
-		}
-	}
-
 	#check the number of jobs running and Start-Sleep untill the number gets below the max_jobs
 	$j = Get-Job -State "Running"
 	while ($j.count -ge $max_jobs) 
